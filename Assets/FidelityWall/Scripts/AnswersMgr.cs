@@ -23,7 +23,7 @@ public class AnswersMgr : MonoBehaviour
         markerOrigin.transform.position = pos;
         Vector3 dir = -personMgr.transform.right;
         if (personMgr.ynTurned) dir = personMgr.transform.right;
-        int n = 9; // default for when nothing is found
+        int n = 9; // default for when nothing is found, 0-8 are the successful hits
         if (Physics.Raycast(pos, dir, out hitInfo, 10))
         {
             marker.transform.position = hitInfo.point;

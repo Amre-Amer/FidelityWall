@@ -4,8 +4,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 
-resY = 19
-resX = 10
+resY = 38
+resX = 20
 pixelCount = resX * resY
 numDummy = 100
 numLabels = 10 # 0-9  9 == out of bounds
@@ -19,7 +19,7 @@ onnx_filename = "fidelity.onnx"
 pixels_filename = "pixels.txt"
 labels_filename = "labels.txt"
 
-epochs = 500 #100
+epochs = 100
 batchSize = 16
 
 # 1. Load data from separate comma-delimited text files

@@ -24,6 +24,7 @@ public class TrainingMgr : MonoBehaviour
     public TMP_Text textSaves;
     int nRecordsSaved;
     string txtElapsedTime;
+    public GameObject backdrop;
 
     void Start()
     {
@@ -59,6 +60,7 @@ public class TrainingMgr : MonoBehaviour
         File.WriteAllText(filespecPixels, txtPixels);
         File.WriteAllText(filespecClassifications, txtClassifications);
         ynDone = true;
+        g.toolsMgr.SetColor(backdrop, Color.green);
         Debug.Log("done");
     }
 

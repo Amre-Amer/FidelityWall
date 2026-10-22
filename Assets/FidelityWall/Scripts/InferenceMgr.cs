@@ -28,6 +28,7 @@ public class InferenceMgr : MonoBehaviour
 
     public float[] Inference(float[] inputData)
     {
+        float t = Time.realtimeSinceStartup;
         TensorShape inputShape = new TensorShape(1, g.pixelCount);  
         using Tensor<float> inputTensor = new Tensor<float>(inputShape, inputData);
         worker.Schedule(inputTensor);
@@ -39,6 +40,8 @@ public class InferenceMgr : MonoBehaviour
         g.indicatorsMgr.SetAccuracy(resultsNormalized, nClassification);
         g.indicatorsMgr.SetColor(nClassification);
         g.answersMgr.SetAnswer(nClassification.ToString());
+        t = t - Time.realtimeSinceStartup;
+        Debug.Log("inference: " + t.ToString("F3"));
         return resultsNormalized;
     }
 

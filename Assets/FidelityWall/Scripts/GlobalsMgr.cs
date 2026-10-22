@@ -9,15 +9,16 @@ public class GlobalsMgr : MonoBehaviour
     public InferenceMgr inferenceMgr;
     public IndicatorsMgr indicatorsMgr;
     public FidelityWallMgr fidelityWallMgr;
-    public float recordingDuration = 10; //30;
+    public float recordingDuration;
     public int resX;
     public int resY;
     public int pixelCount;
 
     void Awake()
     {
-        resX = 19;
-        resY = 10;
+        recordingDuration = 30;
+        resX = 38;
+        resY = 20;
         pixelCount = resX * resY;
     }
 
