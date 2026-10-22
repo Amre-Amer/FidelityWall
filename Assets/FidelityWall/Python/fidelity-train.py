@@ -4,16 +4,34 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 
+resY = 19
+resX = 10
+pixelCount = resX * resY
+numDummy = 100
+numLabels = 10 # 0-9  9 == out of bounds
+
+layerHidden0 = 64
+layerHidden1 = 32
+layerOutput = 10
+# 14,634 parameters
+
+onnx_filename = "fidelity.onnx"
+pixels_filename = "pixels.txt"
+labels_filename = "labels.txt"
+
+epochs = 500 #100
+batchSize = 16
+
 # 1. Load data from separate comma-delimited text files
 # pixels.txt: flat row of 190 values per image
 # labels.txt: a single integer (0-9) per line
 try:
-    X_raw = np.loadtxt('pixels.txt', delimiter=',')
-    y_raw = np.loadtxt('labels.txt', delimiter=',', dtype=np.int64)
+    X_raw = np.loadtxt(pixels_filename, delimiter=',')
+    y_raw = np.loadtxt(labels_filename, delimiter=',', dtype=np.int64)
 except FileNotFoundError:
     print("Files not found. Generating dummy text data for demonstration...")
-    np.savetxt('pixels.txt', np.random.rand(100, 190), delimiter=',')
-    np.savetxt('labels.txt', np.random.randint(0, 10, 100), delimiter=',', fmt='%d')
+    np.savetxt('pixels.txt', np.random.rand(numDummy, pixelCount), delimiter=',')
+    np.savetxt('labels.txt', np.random.randint(0, numLabels, numDummy), delimiter=',', fmt='%d')
     X_raw = np.loadtxt('pixels.txt', delimiter=',')
     y_raw = np.loadtxt('labels.txt', delimiter=',', dtype=np.int64)
 
@@ -23,18 +41,18 @@ y_tensor = torch.tensor(y_raw, dtype=torch.long)
 
 # Create a DataLoader for batch processing
 dataset = TensorDataset(X_tensor, y_tensor)
-dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=batchSize, shuffle=True)
 
 # 2. Define the Neural Network for 10 classifications
 class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
         self.network = nn.Sequential(
-            nn.Linear(19 * 10, 64),  # Input layer (19x10 = 190 flat pixels) 14,634 parameters total
+            nn.Linear(resX * resY, layerHidden0),  # Input layer (19x10 = 190 flat pixels) 14,634 parameters total
             nn.ReLU(),
-            nn.Linear(64, 32),       # Hidden layer 
+            nn.Linear(layerHidden0, layerHidden1),       # Hidden layer 
             nn.ReLU(),
-            nn.Linear(32, 10)        # 10 classifications output layer
+            nn.Linear(layerHidden1, layerOutput)        # 10 classifications output layer
         )
         
     def forward(self, x):
@@ -51,7 +69,6 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 model.train()
-epochs = 500 #100
 for epoch in range(epochs):
     epoch_loss = 0.0
     for batch_X, batch_y in dataloader:
@@ -68,10 +85,9 @@ for epoch in range(epochs):
 model.eval() # Set model to evaluation mode
 
 # Create a mock input matching the input shape (1 sample, 190 pixels)
-dummy_input = torch.randn(1, 19 * 10) 
+dummy_input = torch.randn(1, resX * resY) 
 
 # Export the graph
-onnx_filename = "fidelity.onnx"
 torch.onnx.export(
     model, 
     dummy_input, 

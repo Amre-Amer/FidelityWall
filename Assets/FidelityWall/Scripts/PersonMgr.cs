@@ -22,7 +22,6 @@ public class PersonMgr : MonoBehaviour
     bool ynRotating;
     float angRotate;
     float angRotateStart;
-    public AnswersMgr answersMgr;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -46,7 +45,7 @@ public class PersonMgr : MonoBehaviour
                     g.inferenceMgr.Infer();
                     break;
                 case FidelityWallMgr.InferenceTraining.train:
-                    g.dataMgr.RecordTrainingData();
+                    g.trainingMgr.RecordTrainingData();
                     break;
             }
         }

@@ -18,7 +18,7 @@ public class ToolsMgr : MonoBehaviour
 
     void Fps()
     {
-        textFps.text = "fps: " + cntFps.ToString();
+        textFps.text = "<size=24>fps:</size> " + cntFps.ToString();
         cntFps = 0;
     }
 
@@ -35,7 +35,6 @@ public class ToolsMgr : MonoBehaviour
 
     public float[] NormalizeFloatArray(float[] inputs)
     {
-        string txt = "";
         float[]outputs = new float[inputs.Length];
         float min = -1;
         float max = -1;
@@ -51,9 +50,7 @@ public class ToolsMgr : MonoBehaviour
         {
             float value = inputs[n];
             outputs[n] = (value - min) / range;
-            txt += "\n" + new string('|', (int)(outputs[n] * 50));
         }
-        // Debug.Log(txt);
         return outputs;
     }
 

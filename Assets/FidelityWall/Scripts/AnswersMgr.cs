@@ -9,17 +9,11 @@ public class AnswersMgr : MonoBehaviour
     public GameObject marker;
     public GameObject markerOrigin;
     public PersonMgr personMgr;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
         g.toolsMgr.EnableDisableRenderer(marker, false);
         g.toolsMgr.EnableDisableRenderer(markerOrigin, false);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
     public int FindIndicator()
@@ -29,7 +23,7 @@ public class AnswersMgr : MonoBehaviour
         markerOrigin.transform.position = pos;
         Vector3 dir = -personMgr.transform.right;
         if (personMgr.ynTurned) dir = personMgr.transform.right;
-        int n = 9; // was -1
+        int n = 9; // default for when nothing is found
         if (Physics.Raycast(pos, dir, out hitInfo, 10))
         {
             marker.transform.position = hitInfo.point;

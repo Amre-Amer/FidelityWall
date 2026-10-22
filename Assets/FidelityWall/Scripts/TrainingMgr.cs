@@ -3,8 +3,9 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using TMPro;
 
-public class DataMgr : MonoBehaviour
+public class TrainingMgr : MonoBehaviour
 {
     public GlobalsMgr g;
     public RenderTexture renderTexture;
@@ -18,22 +19,46 @@ public class DataMgr : MonoBehaviour
     string path = "C:\\Users\\Amre\\FidelityWall\\Assets\\FidelityWall\\Python";
     string filespecPixels;
     string filespecClassifications;
-    float recordingDuration = 30;
+    float timeStartRecording;
+    bool ynDone;
+    public TMP_Text textSaves;
+    int nRecordsSaved;
+    string txtElapsedTime;
 
     void Start()
     {
+        if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.infer)
+        {
+            textSaves.gameObject.SetActive(false);
+        }
         filespecPixels = Path.Combine(path, filenamePixels);        
         filespecClassifications = Path.Combine(path, filenameClassifications);     
         if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
         {
-            Invoke(nameof(SaveData), recordingDuration);
+            Invoke(nameof(StartRecording), 1);
         }   
+    }
+
+    void StartRecording()
+    {
+        Invoke(nameof(SaveData), g.recordingDuration);
+        timeStartRecording = Time.realtimeSinceStartup;
+        InvokeRepeating(nameof(ElapsedTime), 0, 1);
+    }
+
+    void ElapsedTime()
+    {
+        if (ynDone) return;
+        float t = Time.realtimeSinceStartup - timeStartRecording;
+        txtElapsedTime = "recording: " + t.ToString("F0") + " / " + g.recordingDuration + " sec";
+        Debug.Log(txtElapsedTime + "\n");
     }
 
     void SaveData()
     {
         File.WriteAllText(filespecPixels, txtPixels);
         File.WriteAllText(filespecClassifications, txtClassifications);
+        ynDone = true;
         Debug.Log("done");
     }
 
@@ -59,6 +84,7 @@ public class DataMgr : MonoBehaviour
 
     public void RecordTrainingData()
     {
+        if(ynDone) return;
         nIndicator = g.answersMgr.FindIndicator();
         AsyncGPUReadback.Request(renderTexture, 0, OnCompleteReadback);
     }
@@ -67,7 +93,7 @@ public class DataMgr : MonoBehaviour
     {
         if (request.hasError)
         {
-            Debug.LogError("GPU readback error occurred.");
+            // Debug.LogError("GPU readback error occurred.");
             return;
         }
         Unity.Collections.NativeArray<Color32> pixels = request.GetData<Color32>();
@@ -76,6 +102,8 @@ public class DataMgr : MonoBehaviour
         if (txtPixels == "") s = "";
         txtPixels += s + txtColors;
         txtClassifications += s + nIndicator;
+        nRecordsSaved++;
+        textSaves.text = "<size=24>Records Saved:</font>\n" + nRecordsSaved + "\n" + txtElapsedTime;
     }
 
     float[] Colors2Greys(Unity.Collections.NativeArray<Color32> pixels)

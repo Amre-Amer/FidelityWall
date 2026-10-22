@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using System.Linq;
 
 public class IndicatorsMgr : MonoBehaviour
 {
@@ -7,6 +9,9 @@ public class IndicatorsMgr : MonoBehaviour
     public Colors colors;
     public List<GameObject>indicators;
     public List<GameObject>scores;
+    public TMP_Text textAccuracy;
+    float accuracyAve;
+    float smooth = .001f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -17,12 +22,6 @@ public class IndicatorsMgr : MonoBehaviour
         {
             ShowHideScores(false);
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     public void ShowHideScores(bool ynOn)
@@ -40,6 +39,20 @@ public class IndicatorsMgr : MonoBehaviour
             GameObject score = scores[n];
             score.transform.localScale = Vector3.one * values[n];
         }
+    }
+
+    public void ShowHideAccuracy(bool ynOn)
+    {
+        textAccuracy.gameObject.SetActive(ynOn);
+    }
+
+    public void SetAccuracy(float[] values, int nMax)
+    {
+        float max = values[nMax];
+        float ave = values.Average();
+        float accuracy = max - ave;
+        accuracyAve = smooth * accuracy + (1 - smooth) * accuracyAve;
+        textAccuracy.text = accuracyAve.ToString("F2");
     }
 
     public void SetColorHeights(float[] values)
