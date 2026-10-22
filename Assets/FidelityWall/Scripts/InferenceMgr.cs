@@ -32,10 +32,11 @@ public class InferenceMgr : MonoBehaviour
         float[] results = outputTensor.DownloadToArray();
         float[] resultsNormalized = g.toolsMgr.NormalizeFloatArray(results);
         //g.indicatorsMgr.SetColorHeights(resultsNormalized);
+        g.indicatorsMgr.SetScores(resultsNormalized);
         int nClassification = g.toolsMgr.GetIndexOfMax(resultsNormalized);      
         g.indicatorsMgr.SetColor(nClassification);
         g.answersMgr.SetAnswer(nClassification.ToString());
-        Debug.Log("Inference:" + nClassification);
+        // Debug.Log("Inference:" + nClassification);
         return resultsNormalized;
     }
 

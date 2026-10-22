@@ -30,9 +30,9 @@ class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
         self.network = nn.Sequential(
-            nn.Linear(19 * 10, 64),  # Input layer (19x10 = 190 flat pixels)
+            nn.Linear(19 * 10, 64),  # Input layer (19x10 = 190 flat pixels) 14,634 parameters total
             nn.ReLU(),
-            nn.Linear(64, 32),       # Hidden layer
+            nn.Linear(64, 32),       # Hidden layer 
             nn.ReLU(),
             nn.Linear(32, 10)        # 10 classifications output layer
         )
@@ -42,12 +42,16 @@ class ImageClassifier(nn.Module):
 
 model = ImageClassifier()
 
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Total parameters: {total_params:,}")
+
+
 # 3. Train the model
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 model.train()
-epochs = 100
+epochs = 500 #100
 for epoch in range(epochs):
     epoch_loss = 0.0
     for batch_X, batch_y in dataloader:

@@ -18,12 +18,16 @@ public class DataMgr : MonoBehaviour
     string path = "C:\\Users\\Amre\\FidelityWall\\Assets\\FidelityWall\\Python";
     string filespecPixels;
     string filespecClassifications;
+    float recordingDuration = 30;
 
     void Start()
     {
         filespecPixels = Path.Combine(path, filenamePixels);        
-        filespecClassifications = Path.Combine(path, filenameClassifications);        
-        Invoke(nameof(SaveData), 20);
+        filespecClassifications = Path.Combine(path, filenameClassifications);     
+        if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
+        {
+            Invoke(nameof(SaveData), recordingDuration);
+        }   
     }
 
     void SaveData()
@@ -42,12 +46,15 @@ public class DataMgr : MonoBehaviour
     {
         if (request.hasError)
         {
-            Debug.LogError("GPU readback error occurred.");
+            // Debug.LogError("GPU readback error occurred.");
             return;
         }
         Unity.Collections.NativeArray<Color32> pixels = request.GetData<Color32>();
         float[] greys = Colors2Greys(pixels);
-        g.inferenceMgr.Inference(greys);
+        if (g != null)
+        {
+            g.inferenceMgr.Inference(greys);
+        }
     }
 
     public void RecordTrainingData()

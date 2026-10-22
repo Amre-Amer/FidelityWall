@@ -6,12 +6,17 @@ public class IndicatorsMgr : MonoBehaviour
     public GlobalsMgr g;
     public Colors colors;
     public List<GameObject>indicators;
+    public List<GameObject>scores;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         SetColors();    
-        SetColor(3);    
+        // SetColor(3);    
+        if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
+        {
+            ShowHideScores(false);
+        }
     }
 
     // Update is called once per frame
@@ -20,9 +25,25 @@ public class IndicatorsMgr : MonoBehaviour
         
     }
 
+    public void ShowHideScores(bool ynOn)
+    {
+        foreach(GameObject score in scores)
+        {
+            score.SetActive(ynOn);
+        }
+    }
+
+    public void SetScores(float[] values)
+    {
+        for(int n = 0; n < scores.Count; n++)
+        {
+            GameObject score = scores[n];
+            score.transform.localScale = Vector3.one * values[n];
+        }
+    }
+
     public void SetColorHeights(float[] values)
     {
-        
     }
 
     void SetColorHeight(GameObject go, float fraction)

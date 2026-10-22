@@ -1,7 +1,27 @@
 using UnityEngine;
+using TMPro;
 
 public class ToolsMgr : MonoBehaviour
 {
+    public TMP_Text textFps;
+    int cntFps;
+
+    void Start()
+    {
+        InvokeRepeating(nameof(Fps), 1, 1);
+    }
+
+    void Update()
+    {
+        cntFps++;    
+    }
+
+    void Fps()
+    {
+        textFps.text = "fps: " + cntFps.ToString();
+        cntFps = 0;
+    }
+
     public void SetColor(GameObject go, Color color)
     {
         Renderer rend = go.GetComponentInChildren<Renderer>();
@@ -33,7 +53,7 @@ public class ToolsMgr : MonoBehaviour
             outputs[n] = (value - min) / range;
             txt += "\n" + new string('|', (int)(outputs[n] * 50));
         }
-        Debug.Log(txt);
+        // Debug.Log(txt);
         return outputs;
     }
 
