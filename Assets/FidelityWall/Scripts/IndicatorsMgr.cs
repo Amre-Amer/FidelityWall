@@ -20,6 +20,16 @@ public class IndicatorsMgr : MonoBehaviour
         
     }
 
+    public void SetColorHeights(float[] values)
+    {
+        
+    }
+
+    void SetColorHeight(GameObject go, float fraction)
+    {
+        
+    }
+
     public void SetColor(int nOn)
     {
         for(int n = 0; n < indicators.Count; n++)
