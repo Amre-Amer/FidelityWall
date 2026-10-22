@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class IndicatorsMgr : MonoBehaviour
 {
+    public GlobalsMgr g;
     public Colors colors;
     public List<GameObject>indicators;
 
@@ -26,10 +27,10 @@ public class IndicatorsMgr : MonoBehaviour
             GameObject indicator = indicators[n];
             if (n == nOn)
             {
-                indicator.GetComponentInChildren<Renderer>().enabled = true;
+                g.toolsMgr.EnableDisableRenderer(indicator, true);
             } else
             {
-                indicator.GetComponentInChildren<Renderer>().enabled = false;
+                g.toolsMgr.EnableDisableRenderer(indicator, false);
             }
         }
     }
@@ -39,8 +40,7 @@ public class IndicatorsMgr : MonoBehaviour
         for(int n = 0; n < indicators.Count; n++)
         {
             GameObject indicator = indicators[n];
-            Renderer rend = indicator.GetComponentInChildren<Renderer>();
-            rend.material.color = colors.colors[n];
+            g.toolsMgr.SetColor(indicator, colors.colors[n]);
         }
     }
 }

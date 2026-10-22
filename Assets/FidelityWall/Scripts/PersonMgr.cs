@@ -2,64 +2,105 @@ using UnityEngine;
 
 public class PersonMgr : MonoBehaviour
 {
+    public GlobalsMgr g;
     public GameObject goFrom;
     public GameObject goTo;
     float speed = .01f;
     float dir = 1;
     Vector3 posFrom;
     Vector3 posTo;
-    float distFromTo;
 
-    float tolerance = .01f;
-
-    public IndicatorsMgr indicatorsMgr;
-    public GameObject marker;
-    public GameObject markerOrigin;
-    bool ynTurned;
+    float tolerance = .02f;
+    public bool ynTurned;
+    public GameObject leftArm;
+    public GameObject rightArm;
+    public GameObject leftLeg;
+    public GameObject rightLeg;
+    float angAnimate;
+    float rangeAnimate = 30;
+    float speedAnimate = 2;
+    bool ynRotating;
+    float angRotate;
+    float angRotateStart;
+    public AnswersMgr answersMgr;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         posFrom = goFrom.transform.position;
         posTo = goTo.transform.position;
-        distFromTo = Vector3.Distance(posFrom, posTo);
     }
 
     // Update is called once per frame
     void Update()
     {
-        Move();
-        FindIndicator();
+        if (ynRotating)
+        {
+            UpdateRotate();
+        } else
+        {
+            Move();
+            switch (g.fidelityWallMgr.inferenceTraining)
+            {
+                case FidelityWallMgr.InferenceTraining.infer:
+                    g.inferenceMgr.Infer();
+                    break;
+                case FidelityWallMgr.InferenceTraining.train:
+                    g.dataMgr.RecordTrainingData();
+                    break;
+            }
+        }
+        Animate();
     }
 
-    void FindIndicator()
+    void UpdateRotate()
     {
-        RaycastHit hitInfo;
-        Vector3 pos = transform.position + Vector3.up * .5f;
-        markerOrigin.transform.position = pos;
-        Vector3 dir = -transform.right;
-        if (ynTurned) dir = transform.right;
-        int n = -1;
-        if (Physics.Raycast(pos, dir, out hitInfo, 10))
-        {
-            marker.transform.position = hitInfo.point;
-            GameObject indicator = hitInfo.collider.gameObject; 
-            Debug.Log("hit:" + indicator.name);
-            n = indicator.transform.GetSiblingIndex();
+        if (!ynRotating) return;
+        float ang = 180 * Time.deltaTime;
+        transform.Rotate(0, ang, 0);
+        angRotate += ang;
+        CheckRotateEnd();
+    }
+
+    void RotateStart()
+    {
+        ynRotating = true;
+        angRotate = 0;
+        angRotateStart = transform.localEulerAngles.y;
+    }
+
+    void CheckRotateEnd()
+    {
+        if (angRotate >= 180) {
+            ynRotating = false;
+            angRotate = 0;
+            transform.localEulerAngles = new(0, angRotateStart, 0);
+            transform.Rotate(0, 180, 0);
         }
-        indicatorsMgr.SetColor(n);
+    }
+
+    void Animate()
+    {
+        float ang = rangeAnimate * Mathf.Sin(angAnimate * Mathf.Deg2Rad);
+        leftArm.transform.localEulerAngles = new(-ang, 0, 0);
+        rightArm.transform.localEulerAngles = new(ang, 0, 0);
+        leftLeg.transform.localEulerAngles = new(ang, 0, 0);
+        rightLeg.transform.localEulerAngles = new(-ang, 0, 0);
+        angAnimate += speedAnimate;        
     }
 
     void Move()
     {
         float distFrom = Vector3.Distance(transform.position, posFrom);
         float distTo = Vector3.Distance(transform.position, posTo);
-        float diff = distFrom + distTo - distFromTo;
-        if (diff > tolerance)
+        if (distFrom <= tolerance || distTo <= tolerance)
         {
-            transform.Rotate(0, 180, 0);
+            transform.Translate(0, 0, -speed * dir);
             ynTurned = !ynTurned;
+            RotateStart();
+        } else
+        {
+            transform.Translate(0, 0, speed * dir);
         }
-        transform.Translate(0, 0, speed * dir);
     }
 }
