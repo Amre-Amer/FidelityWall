@@ -19,7 +19,7 @@ onnx_filename = "fidelity.onnx"
 pixels_filename = "pixels.txt"
 labels_filename = "labels.txt"
 
-epochs = 100
+epochs = 1000
 batchSize = 16
 
 # 1. Load data from separate comma-delimited text files

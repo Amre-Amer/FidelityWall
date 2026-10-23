@@ -10,6 +10,9 @@ public class InferenceMgr : MonoBehaviour
     [SerializeField] private BackendType backend = BackendType.GPUCompute; // Use GPUCompute or CPU
     private Model runtimeModel;
     private Worker worker;
+    float tAve;
+    float tSum;
+    int tn;
 
     void Start()
     {
@@ -40,8 +43,11 @@ public class InferenceMgr : MonoBehaviour
         g.indicatorsMgr.SetAccuracy(resultsNormalized, nClassification);
         g.indicatorsMgr.SetColor(nClassification);
         g.answersMgr.SetAnswer(nClassification.ToString());
-        t = t - Time.realtimeSinceStartup;
-        Debug.Log("inference: " + t.ToString("F3"));
+        t = Time.realtimeSinceStartup - t;
+        tn++;
+        tSum += t;
+        tAve = tSum / tn;
+        if (tn % 50 == 0) Debug.Log("inference: " + tAve);
         return resultsNormalized;
     }
 

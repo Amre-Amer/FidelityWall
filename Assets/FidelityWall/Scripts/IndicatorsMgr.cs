@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 using System.Linq;
 
 public class IndicatorsMgr : MonoBehaviour
@@ -9,15 +8,16 @@ public class IndicatorsMgr : MonoBehaviour
     public Colors colors;
     public List<GameObject>indicators;
     public List<GameObject>scores;
-    public TMP_Text textAccuracy;
-    float accuracyAve;
-    float smooth = .001f;
+    public GameObject accuracy;
+    public GameObject accuracyMin;
+    public GameObject accuracyMax;
+    float min;
+    float max;
+    int nCount;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         SetColors();    
-        // SetColor(3);    
         if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
         {
             ShowHideScores(false);
@@ -43,25 +43,46 @@ public class IndicatorsMgr : MonoBehaviour
 
     public void ShowHideAccuracy(bool ynOn)
     {
-        textAccuracy.gameObject.SetActive(ynOn);
+        accuracy.SetActive(ynOn);
+    }
+
+    float GetSumDiff(float[] values, int nMax)
+    {
+        float val = values[nMax];
+        float sumDiff = 0;
+        foreach(float v in values)
+        {
+            sumDiff += Mathf.Abs(v - val);
+        }
+        return sumDiff;
+    }
+
+    void SetScaleX(GameObject go, float sx)
+    {
+        Vector3 sca = go.transform.localScale;
+        sca.x = sx;
+        go.transform.localScale = sca;
+    }
+
+    void CopyScale(GameObject goTarget, GameObject goSource)
+    {
+        goTarget.transform.localScale = goSource.transform.localScale;
     }
 
     public void SetAccuracy(float[] values, int nMax)
     {
-        float max = values[nMax];
-        float ave = values.Average();
-        float accuracy = max - ave;
-        accuracyAve = smooth * accuracy + (1 - smooth) * accuracyAve;
-        textAccuracy.text = accuracyAve.ToString("F2");
-    }
-
-    public void SetColorHeights(float[] values)
-    {
-    }
-
-    void SetColorHeight(GameObject go, float fraction)
-    {
-        
+        float sumDiff = GetSumDiff(values, nMax);
+        SetScaleX(accuracy, sumDiff);
+        if (sumDiff < min || nCount == 0) {
+            min = sumDiff;
+            CopyScale(accuracyMin, accuracy);
+        }
+        if (sumDiff > max || nCount == 0) {
+            max = sumDiff;
+            CopyScale(accuracyMax, accuracy);
+        }
+        nCount++;
+        Debug.Log(min.ToString("F2") + " < " + sumDiff.ToString("F2") + " < " + max.ToString("F2") + "\n");
     }
 
     public void SetColor(int nOn)

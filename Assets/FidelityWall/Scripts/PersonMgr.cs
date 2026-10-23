@@ -5,20 +5,20 @@ public class PersonMgr : MonoBehaviour
     public GlobalsMgr g;
     public GameObject goFrom;
     public GameObject goTo;
-    float speed = .01f;
-    float dir = 1;
+    float speed;
+    float dir;
     Vector3 posFrom;
     Vector3 posTo;
 
-    float tolerance = .02f;
+    float tolerance;
     public bool ynTurned;
     public GameObject leftArm;
     public GameObject rightArm;
     public GameObject leftLeg;
     public GameObject rightLeg;
     float angAnimate;
-    float rangeAnimate = 30;
-    float speedAnimate = 2;
+    float rangeAnimate;
+    float speedAnimate;
     bool ynRotating;
     float angRotate;
     float angRotateStart;
@@ -26,6 +26,11 @@ public class PersonMgr : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        speed = .01f;
+        dir = 1;
+        tolerance = .02f;
+        rangeAnimate = 30;
+        speedAnimate = 2;
         posFrom = goFrom.transform.position;
         posTo = goTo.transform.position;
     }
