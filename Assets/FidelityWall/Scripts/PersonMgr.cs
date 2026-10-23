@@ -19,7 +19,7 @@ public class PersonMgr : MonoBehaviour
     float angAnimate;
     float rangeAnimate;
     float speedAnimate;
-    bool ynRotating;
+    public bool ynRotating;
     float angRotate;
     float angRotateStart;
 
@@ -86,6 +86,7 @@ public class PersonMgr : MonoBehaviour
     void Animate()
     {
         float ang = rangeAnimate * Mathf.Sin(angAnimate * Mathf.Deg2Rad);
+        ang += Random.Range(-5, 5f);
         leftArm.transform.localEulerAngles = new(-ang, 0, 0);
         rightArm.transform.localEulerAngles = new(ang, 0, 0);
         leftLeg.transform.localEulerAngles = new(ang, 0, 0);

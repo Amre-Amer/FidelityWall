@@ -25,12 +25,17 @@ public class TrainingMgr : MonoBehaviour
     int nRecordsSaved;
     string txtElapsedTime;
     public GameObject backdrop;
+    public GameObject scores;
 
     void Start()
     {
         if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.infer)
         {
             textSaves.gameObject.SetActive(false);
+        }
+        if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
+        {
+            scores.SetActive(false);
         }
         filespecPixels = Path.Combine(path, filenamePixels);        
         filespecClassifications = Path.Combine(path, filenameClassifications);     
@@ -52,7 +57,7 @@ public class TrainingMgr : MonoBehaviour
         if (ynDone) return;
         float t = Time.realtimeSinceStartup - timeStartRecording;
         txtElapsedTime = "recording: " + t.ToString("F0") + " / " + g.recordingDuration + " sec";
-        Debug.Log(txtElapsedTime + "\n");
+        Debug.Log(txtElapsedTime + " records saved: " + nRecordsSaved + "\n");
     }
 
     void SaveData()
@@ -67,6 +72,13 @@ public class TrainingMgr : MonoBehaviour
     public void GrabLiveData()
     {
         AsyncGPUReadback.Request(renderTexture, 0, OnCompleteReadbackLive);
+        InferenceYolo();
+    }
+
+    void InferenceYolo()
+    {
+        Texture2D tex = new Texture2D(g.resX, g.resY);
+        g.yoloV8Inference.Inference(tex);
     }
 
     void OnCompleteReadbackLive(AsyncGPUReadbackRequest request)

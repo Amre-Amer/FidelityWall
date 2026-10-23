@@ -4,15 +4,15 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 
-resY = 38
-resX = 20
-pixelCount = resX * resY
+resX = 38 # based on 19 x n
+resY = 20 # based on 10 x n
+inputSize = resX * resY
 numDummy = 100
-numLabels = 10 # 0-9  9 == out of bounds
+numLabels = 10 # 0-9  9 == out of bounds (9 + 1 'null' = 10)
 
-layerHidden0 = 64
-layerHidden1 = 32
-layerOutput = 10
+hiddenLayer0Size = 64
+hiddenLayer1Size = 32
+outputSize = 10
 # 14,634 parameters
 
 onnx_filename = "fidelity.onnx"
@@ -21,6 +21,7 @@ labels_filename = "labels.txt"
 
 epochs = 1000
 batchSize = 16
+loss = 0
 
 # 1. Load data from separate comma-delimited text files
 # pixels.txt: flat row of 190 values per image
@@ -30,7 +31,7 @@ try:
     y_raw = np.loadtxt(labels_filename, delimiter=',', dtype=np.int64)
 except FileNotFoundError:
     print("Files not found. Generating dummy text data for demonstration...")
-    np.savetxt('pixels.txt', np.random.rand(numDummy, pixelCount), delimiter=',')
+    np.savetxt('pixels.txt', np.random.rand(numDummy, inputSize), delimiter=',')
     np.savetxt('labels.txt', np.random.randint(0, numLabels, numDummy), delimiter=',', fmt='%d')
     X_raw = np.loadtxt('pixels.txt', delimiter=',')
     y_raw = np.loadtxt('labels.txt', delimiter=',', dtype=np.int64)
@@ -48,11 +49,11 @@ class ImageClassifier(nn.Module):
     def __init__(self):
         super(ImageClassifier, self).__init__()
         self.network = nn.Sequential(
-            nn.Linear(resX * resY, layerHidden0),  # Input layer (19x10 = 190 flat pixels) 14,634 parameters total
+            nn.Linear(inputSize, hiddenLayer0Size),  # input layer, hidden layer
             nn.ReLU(),
-            nn.Linear(layerHidden0, layerHidden1),       # Hidden layer 
+            nn.Linear(hiddenLayer0Size, hiddenLayer1Size),       # hidden layer 
             nn.ReLU(),
-            nn.Linear(layerHidden1, layerOutput)        # 10 classifications output layer
+            nn.Linear(hiddenLayer1Size, outputSize)        # output layer
         )
         
     def forward(self, x):
@@ -61,7 +62,6 @@ class ImageClassifier(nn.Module):
 model = ImageClassifier()
 
 total_params = sum(p.numel() for p in model.parameters())
-print(f"Total parameters: {total_params:,}")
 
 
 # 3. Train the model
@@ -79,7 +79,12 @@ for epoch in range(epochs):
         optimizer.step()
         epoch_loss += loss.item()
         
-    print(f"Epoch {epoch+1}/{epochs} | Loss: {epoch_loss/len(dataloader):.4f}")
+    loss = epoch_loss/len(dataloader)
+    n = int(loss * 300)
+    if n > 80:
+        n = 80
+    graph = '|' * n    
+    print(f"Epoch {epoch+1}/{epochs} | Loss: {loss:.4f} {graph}")
 
 # 4. Export the trained model to ONNX format
 model.eval() # Set model to evaluation mode
@@ -103,3 +108,11 @@ torch.onnx.export(
 )
 
 print(f"\nSuccess! Model trained and exported to: {onnx_filename}")
+print(f"Total parameters: {total_params:,}")
+print(f"Loss: {loss:.4f}")
+print(f"Epochs: {epochs}")
+print(f"resX x resY: {resX} x {resY}")
+print(f"input size: {resX * resY}")
+print(f"batch size: {batchSize}")
+print(f"onnx filename: {onnx_filename}")
+
