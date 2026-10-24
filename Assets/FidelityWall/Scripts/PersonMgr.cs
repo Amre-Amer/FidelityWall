@@ -38,6 +38,7 @@ public class PersonMgr : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (g.ynPause) return;
         if (ynRotating)
         {
             UpdateRotate();

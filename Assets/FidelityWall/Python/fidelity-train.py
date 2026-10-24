@@ -4,8 +4,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 
-resX = 38 # based on 19 x n
-resY = 20 # based on 10 x n
+resX = 32 # based on 19 x n
+resY = 32 # based on 10 x n
 inputSize = resX * resY
 numDummy = 100
 numLabels = 10 # 0-9  9 == out of bounds (9 + 1 'null' = 10)

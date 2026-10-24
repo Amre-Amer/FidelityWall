@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using TMPro;
+using System.Text;
 
 public class TrainingMgr : MonoBehaviour
 {
@@ -21,17 +22,19 @@ public class TrainingMgr : MonoBehaviour
     string filespecClassifications;
     float timeStartRecording;
     bool ynDone;
-    public TMP_Text textSaves;
+    public TMP_Text textStats;
     int nRecordsSaved;
     string txtElapsedTime;
     public GameObject backdrop;
     public GameObject scores;
+    List<string> pixelsAllTxt = new();
+    int bytesTot;
 
     void Start()
     {
         if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.infer)
         {
-            textSaves.gameObject.SetActive(false);
+            textStats.gameObject.SetActive(false);
         }
         if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
         {
@@ -47,7 +50,7 @@ public class TrainingMgr : MonoBehaviour
 
     void StartRecording()
     {
-        Invoke(nameof(SaveData), g.recordingDuration);
+        Invoke(nameof(Done), g.recordingDuration);
         timeStartRecording = Time.realtimeSinceStartup;
         InvokeRepeating(nameof(ElapsedTime), 0, 1);
     }
@@ -60,25 +63,53 @@ public class TrainingMgr : MonoBehaviour
         Debug.Log(txtElapsedTime + " records saved: " + nRecordsSaved + "\n");
     }
 
-    void SaveData()
+    void Done()
     {
-        File.WriteAllText(filespecPixels, txtPixels);
-        File.WriteAllText(filespecClassifications, txtClassifications);
         ynDone = true;
         g.toolsMgr.SetColor(backdrop, Color.green);
-        Debug.Log("done");
+        Debug.Log("training done");
+        SaveData();
+    }
+
+    void SaveData()
+    {
+        File.WriteAllText(filespecClassifications, txtClassifications);
+        txtPixels = PixelsAllToString();
+        File.WriteAllText(filespecPixels, txtPixels);
     }
 
     public void GrabLiveData()
     {
         AsyncGPUReadback.Request(renderTexture, 0, OnCompleteReadbackLive);
-        InferenceYolo();
     }
 
-    void InferenceYolo()
+    void InferencePersons(Unity.Collections.NativeArray<Color32> pixels)
     {
-        Texture2D tex = new Texture2D(g.resX, g.resY);
+        // Texture2D tex = new Texture2D(g.resX, g.resY, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
+        // Texture2D tex = new Texture2D(640, 640, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
+        Texture2D tex = RenderTexture2Texture2D(renderTexture);
         g.yoloV8Inference.Inference(tex);
+        // g.mobileNetSSDInference.Inference(tex);
+    }
+
+    Texture2D Color32Array2Texture2D(Unity.Collections.NativeArray<Color32> pixels)
+    {
+        Texture2D tex = new Texture2D(g.resX, g.resY, TextureFormat.RGBA32, false);
+        Color32[] colors = pixels.ToArray();
+        tex.SetPixels32(colors);
+        tex.Apply();
+        return tex;
+    }
+
+    Texture2D RenderTexture2Texture2D(RenderTexture rend)
+    {
+        Texture2D tex = new Texture2D(rend.width, rend.height, TextureFormat.RGBA32, false);
+        RenderTexture previousActive = RenderTexture.active;
+        RenderTexture.active = rend;
+        tex.ReadPixels(new Rect(0, 0, rend.width, rend.height), 0, 0);
+        tex.Apply();
+        RenderTexture.active = previousActive;
+        return tex;
     }
 
     void OnCompleteReadbackLive(AsyncGPUReadbackRequest request)
@@ -89,17 +120,17 @@ public class TrainingMgr : MonoBehaviour
             return;
         }
         Unity.Collections.NativeArray<Color32> pixels = request.GetData<Color32>();
-        float[] greys = Colors2Greys(pixels);
         if (g != null)
         {
-            g.inferenceMgr.Inference(greys);
+            float[] greys = ColorArrayToGrey(pixels.ToArray());
+            g.inferenceMgr.Inference(greys); // using 640x640
+            // InferencePersons(pixels);
         }
     }
 
     public void RecordTrainingData()
     {
         if(ynDone) return;
-        nIndicator = g.answersMgr.FindIndicator();
         AsyncGPUReadback.Request(renderTexture, 0, OnCompleteReadback);
     }
 
@@ -110,45 +141,83 @@ public class TrainingMgr : MonoBehaviour
             // Debug.LogError("GPU readback error occurred.");
             return;
         }
-        Unity.Collections.NativeArray<Color32> pixels = request.GetData<Color32>();
-        string txtColors = Colors2Data(pixels);
+        Color32[] pixels = request.GetData<Color32>().ToArray();
+        // string pixelsTxt = PixelsToString(pixels);
+        string pixelsTxt = ColorArrayToString(pixels);
+        pixelsAllTxt.Add(pixelsTxt);
+
+        bytesTot += pixels.Length * 4;
+
         string s = "\n";
-        if (txtPixels == "") s = "";
-        txtPixels += s + txtColors;
+        if (txtClassifications == "") s = "";
+        nIndicator = g.answersMgr.FindIndicator();
         txtClassifications += s + nIndicator;
+
         nRecordsSaved++;
-        textSaves.text = "<size=24>Records Saved:</font>\n" + nRecordsSaved + "\n" + txtElapsedTime;
+
+        ShowStats();
     }
 
-    float[] Colors2Greys(Unity.Collections.NativeArray<Color32> pixels)
+    void ShowStats()
     {
-        float[] greys = new float[pixels.Count()];
+        string txt = "<size=24>Records Saved:</font>";
+        txt += "\n" + nRecordsSaved;
+        txt += "\n" + txtElapsedTime;
+        txt += "\n" + (bytesTot / 1000000) + " mb";
+        textStats.text = txt;
+    }
+
+    string PixelsAllToString()
+    {
+        string txtAll = "";
+        for(int n = 0; n < pixelsAllTxt.Count; n++)
+        {
+            string txt = pixelsAllTxt[n];
+            string s = "\n";
+            if (txtAll == "") s = "";
+            txtAll += s + txt;
+            Debug.Log("pixels --> string: " + n + " / " + pixelsAllTxt.Count + "\n");
+        }
+        return txtAll;       
+    }
+
+    string PixelsToString(Color32[] pixels)
+    {
+        string txt = "";        
         for(int n = 0; n < pixels.Count(); n++) 
         {
-            Color color = pixels[n];
-            float grayIntensity = color.grayscale;
-            greys[n] = grayIntensity;
+            Color c = pixels[n];
+            string s = ",";
+            if (txt == "") s = "";
+            txt += s + c.grayscale;
+        }
+        return txt;
+    }
+
+    float[] ColorArrayToGrey(Color32[] colors)
+    {
+        float[] greys = new float[colors.Length];
+        for(int n = 0; n < colors.Length; n++)
+        {
+            Color32 c = colors[n];
+            greys[n] = 0.299f * c.r + 0.587f * c.g + 0.114f * c.b;
         }
         return greys;
     }
 
-    string Greys2String(float[] greys)
+    public string ColorArrayToString(Color32[] colors)
     {
-        string txtData = "";        
-        for(int n = 0; n < greys.Length; n++)
+        StringBuilder sb = new StringBuilder(colors.Length * 4);
+        for (int i = 0; i < colors.Length; i++)
         {
-            float grayIntensity = greys[n];
-            string s = ",";
-            if (txtData == "") s = "";
-            txtData += s + grayIntensity;
+            Color32 c = colors[i];
+            string grey = (0.299f * c.r + 0.587f * c.g + 0.114f * c.b).ToString();
+            sb.Append(grey);
+            if (i < colors.Length - 1)
+            {
+                sb.Append(",");
+            }
         }
-        return txtData;
-    }
-
-    string Colors2Data(Unity.Collections.NativeArray<Color32> pixels)
-    {
-        float[] greys = Colors2Greys(pixels);
-        string txtData = Greys2String(greys);
-        return txtData;
+        return sb.ToString();
     }
 }

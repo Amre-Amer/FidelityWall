@@ -1,4 +1,3 @@
-using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
 public class GlobalsMgr : MonoBehaviour
@@ -10,17 +9,19 @@ public class GlobalsMgr : MonoBehaviour
     public IndicatorsMgr indicatorsMgr;
     public FidelityWallMgr fidelityWallMgr;
     public YoloV8Inference yoloV8Inference;
+    public MobileNetSSDInference mobileNetSSDInference;
     public float recordingDuration;
     public int resX;
     public int resY;
     public int pixelCount;
     public int cntFrames;
+    public bool ynPause;
 
     void Awake()
     {
         recordingDuration = 30;
-        resX = 38; // based on 19 * n
-        resY = 20; // based on 10 * n
+        resX = 32; // 38; // based on 19 * n
+        resY = 32; // 20; // based on 10 * n
         pixelCount = resX * resY;
     }
 
