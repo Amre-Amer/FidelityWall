@@ -23,7 +23,7 @@ public class FidelityWallMgr : MonoBehaviour
         if (inferenceTraining == InferenceTraining.infer)
         {
             // test visual diff between load and not loaded
-            InvokeRepeating(nameof(ToggleYnPause), 5, 5);
+            // InvokeRepeating(nameof(ToggleYnPause), 5, 5);
         }
     }
 

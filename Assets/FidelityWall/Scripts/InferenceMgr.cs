@@ -38,7 +38,7 @@ public class InferenceMgr : MonoBehaviour
         Tensor<float> outputTensor = worker.PeekOutput(0) as Tensor<float>;
         float[] results = outputTensor.DownloadToArray();
         float[] resultsNormalized = g.toolsMgr.NormalizeFloatArray(results);
-        g.indicatorsMgr.SetScores(resultsNormalized);
+        // g.indicatorsMgr.SetScores(resultsNormalized);
         int nClassification = g.toolsMgr.GetIndexOfMax(resultsNormalized);      
         g.indicatorsMgr.SetAccuracy(resultsNormalized, nClassification);
         g.indicatorsMgr.SetColor(nClassification);
