@@ -10,18 +10,16 @@ public class InferenceMgr : MonoBehaviour
     [SerializeField] private BackendType backend = BackendType.GPUCompute; // Use GPUCompute or CPU
     private Model runtimeModel;
     private Worker worker;
-    float tAve;
-    float tSum;
     int tn;
 
     void Start()
     {
         runtimeModel = ModelLoader.Load(modelAsset);
         worker = new Worker(runtimeModel, backend);
-        if(g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
-        {
-            g.indicatorsMgr.ShowHideAccuracy(false);
-        }
+        // if(g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
+        // {
+        //     g.indicatorsMgr.ShowHideAccuracy(false);
+        // }
     }
 
     public void Infer()
@@ -38,16 +36,16 @@ public class InferenceMgr : MonoBehaviour
         Tensor<float> outputTensor = worker.PeekOutput(0) as Tensor<float>;
         float[] results = outputTensor.DownloadToArray();
         float[] resultsNormalized = g.toolsMgr.NormalizeFloatArray(results);
-        // g.indicatorsMgr.SetScores(resultsNormalized);
+        g.indicatorsMgr.SetScores(resultsNormalized);
         int nClassification = g.toolsMgr.GetIndexOfMax(resultsNormalized);      
-        g.indicatorsMgr.SetAccuracy(resultsNormalized, nClassification);
+        // g.indicatorsMgr.SetAccuracy(resultsNormalized, nClassification);
         g.indicatorsMgr.SetColor(nClassification);
         g.answersMgr.SetAnswer(nClassification.ToString());
         t = Time.realtimeSinceStartup - t;
         tn++;
-        tSum += t;
-        tAve = tSum / tn;
-        if (tn % 50 == 0) Debug.Log("inference: " + tAve);
+        if (tn % UnityEngine.Random.Range(30, 50) == 0) {
+            Debug.Log(g.cntFrames + " inference: " + (t * 1000).ToString("F1") + " ms");
+        }
         return resultsNormalized;
     }
 

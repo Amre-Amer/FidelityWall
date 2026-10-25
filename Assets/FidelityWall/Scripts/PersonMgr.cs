@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PersonMgr : MonoBehaviour
 {
@@ -22,8 +23,9 @@ public class PersonMgr : MonoBehaviour
     public bool ynRotating;
     float angRotate;
     float angRotateStart;
+    int jogDirection = 1;
+    bool ynJogPause;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         speed = .01f;
@@ -35,9 +37,9 @@ public class PersonMgr : MonoBehaviour
         posTo = goTo.transform.position;
     }
 
-    // Update is called once per frame
     void Update()
     {
+        CheckKeyboard();
         if (g.ynPause) return;
         if (ynRotating)
         {
@@ -56,6 +58,23 @@ public class PersonMgr : MonoBehaviour
             }
         }
         Animate();
+    }
+
+    void CheckKeyboard()
+    {
+        if (Keyboard.current == null) return; 
+        if (Keyboard.current.leftArrowKey.wasPressedThisFrame)
+        {
+            jogDirection = -1;
+        }
+        if (Keyboard.current.rightArrowKey.wasPressedThisFrame)
+        {
+            jogDirection = 1;
+        }
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            ynJogPause = !ynJogPause;
+        }
     }
 
     void UpdateRotate()
@@ -97,16 +116,17 @@ public class PersonMgr : MonoBehaviour
 
     void Move()
     {
+        if (ynJogPause) return;
         float distFrom = Vector3.Distance(transform.position, posFrom);
         float distTo = Vector3.Distance(transform.position, posTo);
         if (distFrom <= tolerance || distTo <= tolerance)
         {
-            transform.Translate(0, 0, -speed * dir);
+            transform.Translate(0, 0, -speed * dir * jogDirection);
             ynTurned = !ynTurned;
             RotateStart();
         } else
         {
-            transform.Translate(0, 0, speed * dir);
+            transform.Translate(0, 0, speed * dir * jogDirection);
         }
     }
 }

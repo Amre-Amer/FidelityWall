@@ -4,8 +4,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 
-resX = 32 # based on 19 x n
-resY = 32 # based on 10 x n
+resX = 64 # based on 19 x n
+resY = 16 # based on 10 x n
 inputSize = resX * resY
 numDummy = 100
 numLabels = 10 # 0-9  9 == out of bounds (9 + 1 'null' = 10)
@@ -20,7 +20,7 @@ pixels_filename = "pixels.txt"
 labels_filename = "labels.txt"
 
 epochs = 1000
-batchSize = 16
+batchSize = 64
 loss = 0
 
 # 1. Load data from separate comma-delimited text files
@@ -89,6 +89,42 @@ for epoch in range(epochs):
 # 4. Export the trained model to ONNX format
 model.eval() # Set model to evaluation mode
 
+print("---------------------------------------------")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+total_eval_loss = 0.0
+eval_loss = 0
+
+# 2. Disable gradient calculations for memory efficiency and speed
+with torch.no_grad():
+    epoch = 0
+    epoch_loss = 0
+    for inputs, targets in dataloader:
+        # Move data to the same device as the model (e.g., 'cuda' or 'cpu')
+        inputs, targets = inputs.to(device), targets.to(device)
+        
+        # 3. Forward pass to get predictions
+        outputs = model(inputs)
+        
+        # 4. Calculate the batch loss
+        eval_loss = criterion(outputs, targets)
+        eloss = eval_loss.item()
+        # 5. Accumulate the loss (use .item() to avoid keeping the graph in memory)
+        total_eval_loss += eloss
+
+        eval_loss = epoch_loss/len(dataloader)
+        n = int(eval_loss * 300)
+        if n > 80:
+            n = 80
+        graph = '!' * n    
+        print(f"eval Epoch {epoch+1}/{epochs} | eLoss: {eval_loss:.4f} {graph}")
+        epoch = epoch + 1
+        epoch_loss += eloss
+
+# 6. Calculate and print average evaluation loss
+avg_eval_loss = total_eval_loss / len(dataloader)
+print(f"Evaluation Loss: {avg_eval_loss:.4f}")
+
 # Create a mock input matching the input shape (1 sample, 190 pixels)
 dummy_input = torch.randn(1, resX * resY) 
 
@@ -110,9 +146,11 @@ torch.onnx.export(
 print(f"\nSuccess! Model trained and exported to: {onnx_filename}")
 print(f"Total parameters: {total_params:,}")
 print(f"Loss: {loss:.4f}")
+print(f"eLoss: {eval_loss:.4f}")
 print(f"Epochs: {epochs}")
 print(f"resX x resY: {resX} x {resY}")
 print(f"input size: {resX * resY}")
 print(f"batch size: {batchSize}")
+print(f"records: {len(y_raw)}");
 print(f"onnx filename: {onnx_filename}")
 

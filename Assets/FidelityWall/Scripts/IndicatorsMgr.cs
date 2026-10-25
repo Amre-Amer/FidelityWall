@@ -8,9 +8,9 @@ public class IndicatorsMgr : MonoBehaviour
     public Colors colors;
     public List<GameObject>indicators;
     public List<GameObject>scores;
-    public GameObject accuracy;
-    public GameObject accuracyMin;
-    public GameObject accuracyMax;
+    // public GameObject accuracy;
+    // public GameObject accuracyMin;
+    // public GameObject accuracyMax;
     float min;
     float max;
     int nCount;
@@ -18,10 +18,10 @@ public class IndicatorsMgr : MonoBehaviour
     void Start()
     {
         SetColors();    
-        if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
-        {
-            ShowHideScores(false);
-        }
+        // if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
+        // {
+        //     ShowHideScores(false);
+        // }
     }
 
     public void ShowHideScores(bool ynOn)
@@ -37,14 +37,16 @@ public class IndicatorsMgr : MonoBehaviour
         for(int n = 0; n < scores.Count; n++)
         {
             GameObject score = scores[n];
-            score.transform.localScale = Vector3.one * values[n];
+            Vector3 sca = score.transform.localScale;
+            sca.y = values[n];
+            score.transform.localScale = sca;
         }
     }
 
-    public void ShowHideAccuracy(bool ynOn)
-    {
-        accuracy.SetActive(ynOn);
-    }
+    // public void ShowHideAccuracy(bool ynOn)
+    // {
+    //     accuracy.SetActive(ynOn);
+    // }
 
     float GetSumDiff(float[] values, int nMax)
     {
@@ -69,21 +71,21 @@ public class IndicatorsMgr : MonoBehaviour
         goTarget.transform.localScale = goSource.transform.localScale;
     }
 
-    public void SetAccuracy(float[] values, int nMax)
-    {
-        float sumDiff = GetSumDiff(values, nMax);
-        SetScaleX(accuracy, sumDiff);
-        if (sumDiff < min || nCount == 0) {
-            min = sumDiff;
-            CopyScale(accuracyMin, accuracy);
-        }
-        if (sumDiff > max || nCount == 0) {
-            max = sumDiff;
-            CopyScale(accuracyMax, accuracy);
-        }
-        nCount++;
-        Debug.Log(min.ToString("F2") + " < " + sumDiff.ToString("F2") + " < " + max.ToString("F2") + "\n");
-    }
+    // public void SetAccuracy(float[] values, int nMax)
+    // {
+    //     float sumDiff = GetSumDiff(values, nMax);
+    //     SetScaleX(accuracy, sumDiff);
+    //     if (sumDiff < min || nCount == 0) {
+    //         min = sumDiff;
+    //         CopyScale(accuracyMin, accuracy);
+    //     }
+    //     if (sumDiff > max || nCount == 0) {
+    //         max = sumDiff;
+    //         CopyScale(accuracyMax, accuracy);
+    //     }
+    //     nCount++;
+    //     // Debug.Log(min.ToString("F2") + " < " + sumDiff.ToString("F2") + " < " + max.ToString("F2") + "\n");
+    // }
 
     public void SetColor(int nOn)
     {
