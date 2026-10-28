@@ -1,15 +1,22 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class FidelityWallMgr : MonoBehaviour
 {
     public GlobalsMgr g;
-    public enum InferenceTraining
+    public enum TrainingInference
     {
-        infer,
-        train
+        train,
+        infer
     }
-    public InferenceTraining inferenceTraining;
+    public TrainingInference trainingInference;
     public RenderTexture renderTexture;
+    public bool ynShowSecond;
+    public bool ynPersonSecond;
+    bool ynShowSecondLast;
+    bool ynPersonSecondLast;
+    public GameObject personSecond;
+
 
     void Awake()
     {
@@ -20,11 +27,27 @@ public class FidelityWallMgr : MonoBehaviour
     {
         renderTexture.width = g.resX;
         renderTexture.height = g.resY;
-        if (inferenceTraining == InferenceTraining.infer)
+        if (trainingInference == TrainingInference.infer)
         {
             // test visual diff between load and not loaded
             // InvokeRepeating(nameof(ToggleYnPause), 5, 5);
         }
+        personSecond.SetActive(g.fidelityWallMgr.ynPersonSecond);
+    }
+
+    void Update()
+    {
+        if (g.ynPause) return;
+        if (ynPersonSecondLast != ynPersonSecond)
+        {
+            personSecond.SetActive(ynPersonSecond);
+        }
+        if (ynShowSecondLast != ynShowSecond)
+        {
+            
+        }
+        ynPersonSecondLast = ynPersonSecond;
+        ynShowSecondLast = ynShowSecond;
     }
 
     void ToggleYnPause()

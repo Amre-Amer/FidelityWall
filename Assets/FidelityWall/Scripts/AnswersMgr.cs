@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections.Generic;
 
 public class AnswersMgr : MonoBehaviour
 {
@@ -30,7 +31,8 @@ public class AnswersMgr : MonoBehaviour
             GameObject indicator = hitInfo.collider.gameObject; 
             n = indicator.transform.GetSiblingIndex();
         }
-        indicatorsMgr.SetColor(n);
+        List<int>nOns = new(){n};
+        indicatorsMgr.ShowHideColorChoice(nOns);
         SetAnswer(n.ToString());
         return n;
     }

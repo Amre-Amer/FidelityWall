@@ -4,8 +4,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 
-resX = 64 # based on 19 x n
-resY = 16 # based on 10 x n
+resX = 128 # based on 19 x n
+resY = 32 # based on 10 x n
 inputSize = resX * resY
 numDummy = 100
 numLabels = 10 # 0-9  9 == out of bounds (9 + 1 'null' = 10)
@@ -80,7 +80,7 @@ for epoch in range(epochs):
         epoch_loss += loss.item()
         
     loss = epoch_loss/len(dataloader)
-    n = int(loss * 300)
+    n = int(loss * 600)
     if n > 80:
         n = 80
     graph = '|' * n    

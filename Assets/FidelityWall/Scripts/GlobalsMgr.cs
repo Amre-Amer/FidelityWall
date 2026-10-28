@@ -20,8 +20,8 @@ public class GlobalsMgr : MonoBehaviour
     void Awake()
     {
         recordingDuration = 30;
-        resX = 64; // 38; // based on 19 * n
-        resY = 16; // 20; // based on 10 * n
+        resX = 128; // 38; // based on 19 * n
+        resY = 32; // 20; // based on 10 * n
         pixelCount = resX * resY;
     }
 

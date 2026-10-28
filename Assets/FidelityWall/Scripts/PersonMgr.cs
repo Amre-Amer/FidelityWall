@@ -13,6 +13,7 @@ public class PersonMgr : MonoBehaviour
 
     float tolerance;
     public bool ynTurned;
+    public GameObject body;
     public GameObject leftArm;
     public GameObject rightArm;
     public GameObject leftLeg;
@@ -20,21 +21,33 @@ public class PersonMgr : MonoBehaviour
     float angAnimate;
     float rangeAnimate;
     float speedAnimate;
-    public bool ynRotating;
+    bool ynRotating;
     float angRotate;
     float angRotateStart;
-    int jogDirection = 1;
+    int jogDirection;
     bool ynJogPause;
+    public bool ynRotatePerson;
+    float angRotatePersonDelta;
+    public bool ynJumpPerson;
+    float speedJump;
+    float heightJump;
+    float angJump;
 
     void Start()
     {
         speed = .01f;
+        jogDirection = 1;
         dir = 1;
         tolerance = .02f;
         rangeAnimate = 30;
         speedAnimate = 2;
         posFrom = goFrom.transform.position;
         posTo = goTo.transform.position;
+        ynRotatePerson = true;
+        angRotatePersonDelta = 2;
+        ynJumpPerson = true;
+        speedJump = 20;
+        heightJump = .25f;
     }
 
     void Update()
@@ -47,17 +60,35 @@ public class PersonMgr : MonoBehaviour
         } else
         {
             Move();
-            switch (g.fidelityWallMgr.inferenceTraining)
+            switch (g.fidelityWallMgr.trainingInference)
             {
-                case FidelityWallMgr.InferenceTraining.infer:
-                    g.inferenceMgr.Infer();
-                    break;
-                case FidelityWallMgr.InferenceTraining.train:
+                case FidelityWallMgr.TrainingInference.train:
                     g.trainingMgr.RecordTrainingData();
+                    break;
+                case FidelityWallMgr.TrainingInference.infer:
+                    g.inferenceMgr.Infer();
                     break;
             }
         }
         Animate();
+        Rotate();
+        Jump();
+    }
+
+    void Jump()
+    {
+        if (!ynJumpPerson || ynRotating) return;
+        float y = heightJump / 2 + heightJump / 2 * Mathf.Cos(angJump * Mathf.Deg2Rad);
+        Vector3 pos = body.transform.position;
+        pos.y = y;
+        body.transform.position = pos;
+        angJump += speedJump;
+    }
+
+    void Rotate()
+    {
+        if(!ynRotatePerson || ynRotating) return;
+        body.transform.Rotate(0, angRotatePersonDelta, 0);        
     }
 
     void CheckKeyboard()
@@ -106,7 +137,10 @@ public class PersonMgr : MonoBehaviour
     void Animate()
     {
         float ang = rangeAnimate * Mathf.Sin(angAnimate * Mathf.Deg2Rad);
-        ang += Random.Range(-5, 5f);
+        if (g.fidelityWallMgr.trainingInference == FidelityWallMgr.TrainingInference.train)
+        {
+            ang += Random.Range(-5, 5f);
+        }
         leftArm.transform.localEulerAngles = new(-ang, 0, 0);
         rightArm.transform.localEulerAngles = new(ang, 0, 0);
         leftLeg.transform.localEulerAngles = new(ang, 0, 0);

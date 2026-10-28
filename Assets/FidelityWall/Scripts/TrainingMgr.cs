@@ -32,17 +32,18 @@ public class TrainingMgr : MonoBehaviour
 
     void Start()
     {
-        if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.infer)
+        if (g.fidelityWallMgr.trainingInference == FidelityWallMgr.TrainingInference.infer)
         {
             textStats.gameObject.SetActive(false);
         }
-        if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
+        if (g.fidelityWallMgr.trainingInference == FidelityWallMgr.TrainingInference.train)
         {
             scores.SetActive(false);
+            g.inferenceMgr.textRating.gameObject.SetActive(false);
         }
         filespecPixels = Path.Combine(path, filenamePixels);        
         filespecClassifications = Path.Combine(path, filenameClassifications);     
-        if (g.fidelityWallMgr.inferenceTraining == FidelityWallMgr.InferenceTraining.train)
+        if (g.fidelityWallMgr.trainingInference == FidelityWallMgr.TrainingInference.train)
         {
             Invoke(nameof(StartRecording), 1);
         }   

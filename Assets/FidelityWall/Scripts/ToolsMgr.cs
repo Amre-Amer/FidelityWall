@@ -69,4 +69,35 @@ public class ToolsMgr : MonoBehaviour
         }
         return nMax;
     }
+
+    public int GetIndexOfMaxSecond(float[] outputs)
+    {
+        int nMax = -1;
+        float max = -1;
+        for(int n = 0; n < outputs.Length; n++)
+        {
+            float val = outputs[n];
+            if (val > max)
+            {
+                nMax = n;
+                max = val;
+            }
+        }
+        int nMaxFirst = nMax;
+        nMax = -1;
+        max = -1;
+        for(int n = 0; n < outputs.Length; n++)
+        {
+            if (n != nMaxFirst)
+            {
+                float val = outputs[n];
+                if (val > max)
+                {
+                    nMax = n;
+                    max = val;
+                }
+            }
+        }
+        return nMax;
+    }
 }
